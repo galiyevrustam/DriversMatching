@@ -39,10 +39,18 @@ class Program
         foreach (var driver in nearest)
         {
             double dist = Math.Round(DistanceCalculator.Euclidean(driver.Position, order), 2);
-            Console.WriteLine($"{driver}  —  {dist,5} ед.");
+            Console.WriteLine($"{driver}  —  {dist,6:0.00}");
         }
+        Console.WriteLine("\n5 ближайших (Top-K List):");
+        var nearest2 = finder.FindNearestTopKList(order, 5);
 
+        foreach (var driver in nearest2)
+        {
+            double dist = Math.Round(DistanceCalculator.Euclidean(driver.Position, order), 2);
+            Console.WriteLine($"{driver}  —  {dist,6:0.00}");
+        }
         Console.WriteLine("\nНажмите Enter для выхода...");
         Console.ReadLine();
+
     }
 }
