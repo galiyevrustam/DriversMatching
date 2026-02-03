@@ -49,6 +49,14 @@ class Program
             double dist = Math.Round(DistanceCalculator.Euclidean(driver.Position, order), 2);
             Console.WriteLine($"{driver}  —  {dist,6:0.00}");
         }
+        Console.WriteLine("\n5 ближайших (Grid search, cell=10):");
+        var nearestGrid = finder.FindNearestGrid(order, 5, cellSize: 10);
+
+        foreach (var driver in nearestGrid)
+        {
+            double dist = Math.Round(DistanceCalculator.Euclidean(driver.Position, order), 2);
+            Console.WriteLine($"{driver}  —  {dist,6:0.00}");
+        }
         Console.WriteLine("\nНажмите Enter для выхода...");
         Console.ReadLine();
 

@@ -8,10 +8,6 @@ public class DriverFinder
     {
         _store = store;
     }
-
-    /// <summary>
-    /// Самый простой алгоритм: перебрать всех → отсортировать → взять первые 5
-    /// </summary>
     public List<Driver> FindNearestLinearSort(Position orderPosition, int count = 5)
     {
         var allDrivers = _store.GetAll();
@@ -21,7 +17,6 @@ public class DriverFinder
             return new List<Driver>();
         }
 
-        // Сортируем по квадрату расстояния (быстрее, чем с корнем)
         var sorted = allDrivers
             .OrderBy(d => DistanceCalculator.SquaredEuclidean(d.Position, orderPosition))
             .Take(count)
@@ -29,12 +24,6 @@ public class DriverFinder
 
         return sorted;
     }
-    /// <summary>
-    /// Алгоритм 2: используем PriorityQueue (max-heap), чтобы держать только топ-K ближайших
-    /// </summary>
-    /// <summary>
-    /// Алгоритм 2 — поддерживаем список из 5 лучших кандидатов, заменяем худшего при необходимости
-    /// </summary>
     public List<Driver> FindNearestTopKList(Position orderPosition, int count = 5)
     {
         var allDrivers = _store.GetAll();
@@ -43,21 +32,18 @@ public class DriverFinder
             return new List<Driver>();
         }
 
-        // Будем хранить список из count ближайших
         var best = new List<(Driver Driver, double DistSq)>();
 
         foreach (var driver in allDrivers)
         {
             double distSq = DistanceCalculator.SquaredEuclidean(driver.Position, orderPosition);
 
-            // Если ещё не набрали count кандидатов — просто добавляем
             if (best.Count < count)
             {
                 best.Add((driver, distSq));
                 continue;
             }
 
-            // Находим худшего (самое большое расстояние) в текущем топе
             int worstIndex = 0;
             double worstDist = best[0].DistSq;
 
@@ -70,17 +56,14 @@ public class DriverFinder
                 }
             }
 
-            // Если новый водитель ближе худшего — заменяем
             if (distSq < worstDist)
             {
                 best[worstIndex] = (driver, distSq);
             }
         }
 
-        // Сортируем результат по расстоянию (от ближайшего к дальнему)
         best.Sort((a, b) => a.DistSq.CompareTo(b.DistSq));
 
-        // Возвращаем только водителей
         var result = new List<Driver>(count);
         foreach (var item in best)
         {
@@ -89,4 +72,62 @@ public class DriverFinder
 
         return result;
     }
+    /// Алгоритм 3 — поиск в ближайших ячейках сетки (grid-based)
+    public List<Driver> FindNearestGrid(Position orderPosition, int count = 5, int cellSize = 10)
+    {
+        var allDrivers = _store.GetAll();
+        if (allDrivers.Count == 0)
+        {
+            return new List<Driver>();
+        }
+
+        var grid = new Dictionary<(int Row, int Col), List<Driver>>();
+
+        foreach (var driver in allDrivers)
+        {
+            int row = driver.Position.Y / cellSize;
+            int col = driver.Position.X / cellSize;
+
+            var key = (row, col);
+
+            if (!grid.TryGetValue(key, out var cellList))
+            {
+                cellList = new List<Driver>();
+                grid[key] = cellList;
+            }
+
+            cellList.Add(driver);
+        }
+
+        int orderRow = orderPosition.Y / cellSize;
+        int orderCol = orderPosition.X / cellSize;
+
+        var candidates = new List<Driver>();
+
+        for (int dr = -1; dr <= 1; dr++)
+        {
+            for (int dc = -1; dc <= 1; dc++)
+            {
+                var key = (orderRow + dr, orderCol + dc);
+
+                if (grid.TryGetValue(key, out var cell))
+                {
+                    candidates.AddRange(cell);
+                }
+            }
+        }
+
+        if (candidates.Count < count)
+        {
+            candidates = allDrivers;
+        }
+
+        var sorted = candidates
+            .OrderBy(d => DistanceCalculator.SquaredEuclidean(d.Position, orderPosition))
+            .Take(count)
+            .ToList();
+
+        return sorted;
+    }
+
 }
