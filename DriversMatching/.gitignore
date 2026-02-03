@@ -1,0 +1,28 @@
+# .NET Build / Output
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+
+# Visual Studio
+.vs/
+*.sln.docstates
+*.code-workspace
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# NuGet
+packages/
+*.nupkg
+*.snk
+
+# Test results
+TestResults/
+*.trx
+
+# Logs and temp files
+*.log
+*.tmp
